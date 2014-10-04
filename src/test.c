@@ -44,9 +44,25 @@ err_0:
   return 0;
 }
 
+int loadfile(int argc, char** argv)
+{
+  if (argc != 2)
+    return -1;
+
+  dlib_owner_t owner = DLIB_OWNER_NULL;
+
+  char* foo = dlib_loadfile(argv[1]);
+  dlib_opush(&owner, foo, free);
+  puts(foo);
+
+  dlib_oclear(&owner);
+  return 0;
+}
+
 int main(int argc, char** argv)
 {
   const dlib_cmd_t cmds[] = {
+    {"loadfile", "<file>", loadfile},
     {"echo", "*<string>", echo},
     {"owner", "", owner},
     DLIB_CMD_NULL

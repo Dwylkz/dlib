@@ -11,6 +11,15 @@
 #define DLIB_INFO(fmt,...) DLIB_MSG(stdout, "INFO", fmt,##__VA_ARGS__)
 
 /**
+ * @brief 
+ *   print system error message
+ *
+ * @return
+ *   pointer to systen error message
+ */
+const char* dlib_syserr();
+
+/**
  * @brief put message to stderr
  *
  * @param fmt
@@ -114,5 +123,16 @@ void dlib_opop(dlib_owner_t* self, void* data);
  * @param self
  */
 void dlib_oclear(dlib_owner_t* self);
+
+/**
+ * @brief
+ *   load file to memory
+ *
+ * @param filename
+ *
+ * @return
+ *   mem buffer pointer
+ */
+char* dlib_loadfile(const char* filename);
 
 #endif // DLIB_COMM_H_

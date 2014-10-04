@@ -1,8 +1,15 @@
 #include "dlib_comm.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
+
+const char* dlib_syserr()
+{
+  return strerror(errno);
+}
 
 void dlib_errmsg(const char* fmt, ...)
 {
@@ -74,4 +81,46 @@ void dlib_oclear(dlib_owner_t* self)
       self->data[i].del = 0;
     }
   }
+}
+
+char* dlib_loadfile(const char* filename)
+{
+  FILE* file = fopen(filename, "r");
+  if (file == NULL) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_0;
+  }
+
+  if (fseek(file, 0, SEEK_END) == -1) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_1;
+  }
+
+  long size = ftell(file);
+  if (size == -1) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_1;
+  }
+
+  rewind(file);
+
+  char* foo = calloc(size+1, 1);
+  if (foo == NULL) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_1;
+  }
+  
+  if (fread(foo, 1, size, file) != size) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_2;
+  }
+
+  fclose(file);
+  return foo;
+err_2:
+  free(foo);
+err_1:
+  fclose(file);
+err_0:
+  return foo;
 }

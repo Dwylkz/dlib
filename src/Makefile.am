@@ -10,6 +10,7 @@ test_CFLAGS = -L. -ldlib
 
 .PHONY: run
 run:
+	./test loadfile test.c
+	valgrind .libs/lt-test loadfile test.c
 	./test owner
-	valgrind .libs/lt-test owner
 	./test echo e c h o
