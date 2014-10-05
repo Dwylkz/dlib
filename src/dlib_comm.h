@@ -99,6 +99,32 @@ char* dlib_loadfile(const char* filename);
 
 /**
  * @brief
+ *   gen a random number in [lower, upper)
+ *
+ * @param lower
+ * @param upper
+ *
+ * @return
+ *   a random number in [lower, upper)
+ */
+uint32_t dlib_rand_num(const uint32_t lower, const uint32_t upper);
+/**
+ * @brief
+ *   gen a random string which each charactor is in [lower, upper)
+ *   and has len length
+ *
+ * @param nmemb
+ * @param len
+ * @param lower
+ * @param upper
+ *
+ * @return
+ *   a random string which each charactor is in [lower, upper)
+ */
+char* dlib_rand_str(const uint32_t len, const uint32_t lower, const uint32_t upper);
+
+/**
+ * @brief
  *
  * @param fmt
  *   printf style format
@@ -109,7 +135,30 @@ char* dlib_loadfile(const char* filename);
  */
 char* dlib_fmtstr(const char* fmt, ...);
 
+/**
+ * @brief
+ *   mapper function interface
+ *
+ * @param 
+ *
+ * @return
+ *   0 on succ
+ *   others on error
+ */
 typedef int (dlib_map_i)(void*);
+/**
+ * @brief
+ *   apply mapper to [first, last)
+ *
+ * @param first
+ * @param last
+ * @param mapper
+ *
+ * @return
+ *   0 on succ
+ *   others on error
+ */
+int dlib_map(void* first, void* last, dlib_map_i* mapper);
 /**
  * @brief
  *   a wrapper of free
@@ -121,9 +170,33 @@ typedef int (dlib_map_i)(void*);
  */
 int dlib_free(void* self);
 
+/**
+ * @brief
+ *   compare function interface
+ *
+ * @param 
+ *
+ * @return
+ *   <0 if lhs < rhs
+ *   0 if lhs == rhs
+ *   >0 if lhs > rhs
+ */
 typedef int (dlib_comp_i)(void*, void*);
+int dlib_int_comp(void* lhs, void* rhs);
+int dlib_str_comp(void* lhs, void* rhs);
 
+/**
+ * @brief 
+ *   hash function interface
+ *
+ * @param 
+ *
+ * @return 
+ *   hash code
+ */
 typedef uint32_t (dlib_hash_i)(void*);
+uint32_t dlib_int_hash(void* self);
+uint32_t dlib_str_hash(void* self);
 
 #ifndef DLIB_OWNER_SIZE
 # define DLIB_OWNER_SIZE 8

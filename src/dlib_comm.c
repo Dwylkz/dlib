@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
+#include <pthread.h>
 
 const char* dlib_syserr()
 {
@@ -81,6 +83,35 @@ err_0:
   return foo;
 }
 
+uint32_t dlib_rand_num(const uint32_t lower, const uint32_t upper)
+{
+  static int is_init = 1;
+  static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_lock(&mutex);
+
+  if (is_init == 1) {
+    srand((uint32_t)time(NULL));
+    is_init = 0;
+  }
+  int ret = rand()%(upper-lower)+lower;
+
+  pthread_mutex_unlock(&mutex);
+  return ret;
+}
+
+char* dlib_rand_str(const uint32_t len, const uint32_t lower, const uint32_t upper)
+{
+  char* bud = calloc(len+1, 1);
+  if (bud == NULL) {
+    DLIB_ERR("%s", dlib_syserr());
+    return NULL;
+  }
+
+  for (int i = 0; i < len; i++)
+    bud[i] = dlib_rand_num(lower, upper);
+  return bud;
+}
+
 char* dlib_fmtstr(const char* fmt, ...)
 {
   va_list ap;
@@ -112,6 +143,29 @@ err_1:
   va_end(ap);
 err_0:
   return NULL;
+}
+
+int dlib_int_comp(void* lhs, void* rhs)
+{
+  return *((int*)lhs)-*((int*)rhs);
+}
+
+int dlib_str_comp(void* lhs, void* rhs)
+{
+  return strcmp(lhs, rhs);
+}
+
+uint32_t dlib_int_hash(void* self)
+{
+  return *((int*)self);
+}
+
+uint32_t dlib_str_hash(void* self)
+{
+  uint32_t seed = 0;
+  for (char* i = 0; *i; i++)
+    seed = seed*3+*i;
+  return seed;
 }
 
 int dlib_opush(dlib_owner_t* self, void* data, dlib_map_i* del)
@@ -150,6 +204,14 @@ void dlib_oclear(dlib_owner_t* self)
     self->data[i].del = 0;
   }
   self->size = 0;
+}
+
+int dlib_map(void* first, void* last, dlib_map_i* mapper)
+{
+  int ret = 0;
+  while (first < last)
+    ret |= mapper(first++);
+  return ret;
 }
 
 int dlib_free(void* self)

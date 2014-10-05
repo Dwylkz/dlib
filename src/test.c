@@ -85,9 +85,15 @@ int utils(int argc, char** argv)
   return 0;
 }
 
+int hash(int argc, char** argv)
+{
+  return 0;
+}
+
 int main(int argc, char** argv)
 {
   const dlib_cmd_t cmds[] = {
+    DLIB_CMD_DEFINE(hash, ""),
     DLIB_CMD_DEFINE(utils, ""),
     DLIB_CMD_DEFINE(array, ""),
     DLIB_CMD_DEFINE(loadfile, "<file>"),
