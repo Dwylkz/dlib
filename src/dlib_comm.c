@@ -39,50 +39,6 @@ err_0:
   return -1;
 }
 
-int dlib_opush(dlib_owner_t* self, void* data, void (*del)(void*))
-{
-  int id = 0;
-  while (id < DLIB_OWNER_SIZE) {
-    if (self->data[id].data == 0)
-      break;
-    id++;
-  }
-
-  if (id == DLIB_OWNER_SIZE) {
-    DLIB_ERR("the owner is going to overflow");
-    return -1;
-  }
-
-  self->data[id].data = data;
-  self->data[id].del = del;
-  return 0;
-}
-
-void dlib_opop(dlib_owner_t* self, void* data)
-{
-  for (int i = 0; i < DLIB_OWNER_SIZE; i++) {
-    if (self->data[i].data == data) {
-      self->data[i].del(data);
-      self->data[i].data = 0;
-      self->data[i].del = 0;
-      return ;
-    }
-  }
-
-  DLIB_INFO("data %p is not under control", data);
-}
-
-void dlib_oclear(dlib_owner_t* self)
-{
-  for (int i = 0; i < DLIB_OWNER_SIZE; i++) {
-    if (self->data[i].data != 0) {
-      self->data[i].del(self->data[i].data);
-      self->data[i].data = 0;
-      self->data[i].del = 0;
-    }
-  }
-}
-
 char* dlib_loadfile(const char* filename)
 {
   FILE* file = fopen(filename, "r");
@@ -123,4 +79,81 @@ err_1:
   fclose(file);
 err_0:
   return foo;
+}
+
+char* dlib_fmtstr(const char* fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+
+  int size = vsnprintf(NULL, 0, fmt, ap);
+  if (size < 0) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_0;
+  }
+
+  char* foo = calloc(size+1, 1);
+  if (foo == NULL) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_1;
+  }
+
+  va_start(ap, fmt);
+  if (vsnprintf(foo, size+1, fmt, ap) < 0) {
+    DLIB_ERR("%s", dlib_syserr());
+    goto err_2;
+  }
+
+  va_end(ap);
+  return foo;
+err_2:
+  free(foo);
+err_1:
+  va_end(ap);
+err_0:
+  return NULL;
+}
+
+int dlib_opush(dlib_owner_t* self, void* data, dlib_map_i* del)
+{
+  if (self->size == DLIB_OWNER_SIZE) {
+    DLIB_ERR("the owner is going to overflow");
+    return -1;
+  }
+
+  self->data[self->size].data = data;
+  self->data[self->size].del = del;
+  self->size++;
+  return 0;
+}
+
+void dlib_opop(dlib_owner_t* self, void* data, int do_del)
+{
+  for (int i = 0; i < DLIB_OWNER_SIZE; i++) {
+    if (self->data[i].data == data) {
+      if (do_del == 1)
+        self->data[i].del(data);
+      self->data[i] = self->data[self->size-1];
+      self->size--;
+      return ;
+    }
+  }
+
+  DLIB_INFO("data %p is not under control", data);
+}
+
+void dlib_oclear(dlib_owner_t* self)
+{
+  for (int i = 0; i < self->size; i++) {
+    self->data[i].del(self->data[i].data);
+    self->data[i].data = 0;
+    self->data[i].del = 0;
+  }
+  self->size = 0;
+}
+
+int dlib_free(void* self)
+{
+  free(self);
+  return 0;
 }

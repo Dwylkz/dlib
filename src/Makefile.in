@@ -126,7 +126,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libdlib_la_LIBADD =
 am__objects_1 =
-am_libdlib_la_OBJECTS = $(am__objects_1) dlib_comm.lo
+am_libdlib_la_OBJECTS = $(am__objects_1) dlib_comm.lo dlib_array.lo \
+	dlib_hash.lo
 libdlib_la_OBJECTS = $(am_libdlib_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -316,9 +317,14 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libdlib.la
-include_HEADERS = dlib_comm.h
+include_HEADERS = dlib_comm.h \
+									dlib_array.h \
+									dlib_hash.h
+
 libdlib_la_SOURCES = $(include_HEADERS) \
-										 dlib_comm.c
+										 dlib_comm.c \
+										 dlib_array.c \
+										 dlib_hash.c
 
 test_SOURCES = test.c
 test_CFLAGS = -L. -ldlib
@@ -414,7 +420,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dlib_array.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dlib_comm.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dlib_hash.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-test.Po@am__quote@
 
 .c.o:
@@ -690,8 +698,9 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 .PHONY: run
 run:
+	./test utils
+	./test array
 	./test loadfile test.c
-	valgrind .libs/lt-test loadfile test.c
 	./test owner
 	./test echo e c h o
 

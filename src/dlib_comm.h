@@ -1,6 +1,10 @@
 #ifndef DLIB_COMM_H_
 # define DLIB_COMM_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
 #define DLIB_MSG(file, prefix, fmt,...) \
     do {\
       fprintf(file, "%s:%s:%d:%s: ", __FILE__, __func__, __LINE__, prefix);\
@@ -39,7 +43,8 @@ typedef struct dlib_cmd_t {
   const char* usage;
   int (*cmd)(int, char**);
 } dlib_cmd_t;
-const dlib_cmd_t DLIB_CMD_NULL = {0, 0, 0};
+#define DLIB_CMD_DEFINE(name, usage) {#name, usage, name}
+#define DLIB_CMD_NULL {NULL, NULL, NULL}
 /**
  * @brief 
  *   it's a command proxy for main function
@@ -81,6 +86,45 @@ const dlib_cmd_t DLIB_CMD_NULL = {0, 0, 0};
  */
 int dlib_subcmd(int argc, char** argv, const dlib_cmd_t* cmds);
 
+/**
+ * @brief
+ *   load file to memory
+ *
+ * @param filename
+ *
+ * @return
+ *   mem buffer pointer
+ */
+char* dlib_loadfile(const char* filename);
+
+/**
+ * @brief
+ *
+ * @param fmt
+ *   printf style format
+ * @param ...
+ *
+ * @return 
+ *   pointer to formated string
+ */
+char* dlib_fmtstr(const char* fmt, ...);
+
+typedef int (dlib_map_i)(void*);
+/**
+ * @brief
+ *   a wrapper of free
+ *
+ * @param self
+ *
+ * @return
+ *   always return 0
+ */
+int dlib_free(void* self);
+
+typedef int (dlib_comp_i)(void*, void*);
+
+typedef uint32_t (dlib_hash_i)(void*);
+
 #ifndef DLIB_OWNER_SIZE
 # define DLIB_OWNER_SIZE 8
 #endif // DLIB_OWNER_SIZE
@@ -91,10 +135,11 @@ int dlib_subcmd(int argc, char** argv, const dlib_cmd_t* cmds);
 typedef struct dlib_owner_t {
   struct {
     void* data;
-    void (*del)(void*);
+    dlib_map_i* del;
   } data[DLIB_OWNER_SIZE];
+  int size;
 } dlib_owner_t;
-const dlib_owner_t DLIB_OWNER_NULL = {{{0, 0}}};
+#define DLIB_OWNER_NULL {{{0, 0}}, 0}
 /**
  * @brief 
  *   push a data to owner
@@ -107,15 +152,17 @@ const dlib_owner_t DLIB_OWNER_NULL = {{{0, 0}}};
  * @return 
  *   0 on succ, -1 on the size == DLIB_OWNER_SIZE
  */
-int dlib_opush(dlib_owner_t* self, void* data, void (*del)(void*));
+int dlib_opush(dlib_owner_t* self, void* data, dlib_map_i* del);
 /**
  * @brief
  *   free specific data from owner
  *
  * @param self
  * @param data
+ * @param do_del
+ *   1  delete, others not
  */
-void dlib_opop(dlib_owner_t* self, void* data);
+void dlib_opop(dlib_owner_t* self, void* data, int do_del);
 /**
  * @brief
  *   free all data in owner, usually use for err handle
@@ -123,16 +170,5 @@ void dlib_opop(dlib_owner_t* self, void* data);
  * @param self
  */
 void dlib_oclear(dlib_owner_t* self);
-
-/**
- * @brief
- *   load file to memory
- *
- * @param filename
- *
- * @return
- *   mem buffer pointer
- */
-char* dlib_loadfile(const char* filename);
 
 #endif // DLIB_COMM_H_
