@@ -14,6 +14,7 @@ test_CFLAGS = -L. -ldlib
 
 .PHONY: run
 run:
+	./test hash 1000000 10
 	./test utils
 	./test array
 	./test loadfile test.c

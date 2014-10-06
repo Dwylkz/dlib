@@ -28,7 +28,7 @@ typedef struct dlib_hash_t {
  * @return
  *   new hash table on succ, NULL on error
  */
-dlib_hash_t* dlib_hnew(const dlib_hash_i* hash, const dlib_comp_i* comp);
+dlib_hash_t* dlib_hnew(dlib_hash_i* hash, dlib_comp_i* comp);
 /**
  * @brief 
  *

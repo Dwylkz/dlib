@@ -145,12 +145,12 @@ err_0:
   return NULL;
 }
 
-int dlib_int_comp(void* lhs, void* rhs)
+int dlib_int_comp(const void* lhs, const void* rhs)
 {
   return *((int*)lhs)-*((int*)rhs);
 }
 
-int dlib_str_comp(void* lhs, void* rhs)
+int dlib_str_comp(const void* lhs, const void* rhs)
 {
   return strcmp(lhs, rhs);
 }
@@ -163,7 +163,7 @@ uint32_t dlib_int_hash(void* self)
 uint32_t dlib_str_hash(void* self)
 {
   uint32_t seed = 0;
-  for (char* i = 0; *i; i++)
+  for (char* i = self; *i; i++)
     seed = seed*3+*i;
   return seed;
 }
@@ -209,8 +209,10 @@ void dlib_oclear(dlib_owner_t* self)
 int dlib_map(void* first, void* last, dlib_map_i* mapper)
 {
   int ret = 0;
-  while (first < last)
-    ret |= mapper(first++);
+  void** begin = first;
+  void** end = last;
+  while (begin < end)
+    ret |= mapper(*begin++);
   return ret;
 }
 

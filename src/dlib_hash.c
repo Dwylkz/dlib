@@ -6,7 +6,7 @@ typedef struct node_t {
   uint32_t code;
 } node_t;
 
-dlib_hash_t* dlib_hnew(const dlib_hash_i* hash, const dlib_comp_i* comp)
+dlib_hash_t* dlib_hnew(dlib_hash_i* hash, dlib_comp_i* comp)
 {
   dlib_hash_t* bud = calloc(sizeof(dlib_hash_t), 1);
   if (bud == NULL) {
@@ -24,6 +24,7 @@ err_0:
 int dlib_hfree(void* self)
 {
   free(((dlib_hash_t*)self)->data);
+  free(((dlib_hash_t*)self)->head);
   free(self);
   return 0;
 }
@@ -51,7 +52,7 @@ static int resize(dlib_hash_t* self)
     data[i].to = data+i-1;
 
   for (int i = 0; i < self->size; i++) {
-    uint32_t at = self->data[i].code%self->volume;
+    uint32_t at = self->data[i].code%volume;
     node_t* bud = freed;
     freed = freed->to;
 

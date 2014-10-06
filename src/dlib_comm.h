@@ -181,9 +181,9 @@ int dlib_free(void* self);
  *   0 if lhs == rhs
  *   >0 if lhs > rhs
  */
-typedef int (dlib_comp_i)(void*, void*);
-int dlib_int_comp(void* lhs, void* rhs);
-int dlib_str_comp(void* lhs, void* rhs);
+typedef int (dlib_comp_i)(const void*, const void*);
+int dlib_int_comp(const void* lhs, const void* rhs);
+int dlib_str_comp(const void* lhs, const void* rhs);
 
 /**
  * @brief 

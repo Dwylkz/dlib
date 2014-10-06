@@ -5,6 +5,7 @@
 
 #include <dlib_comm.h>
 #include <dlib_array.h>
+#include <dlib_hash.h>
 
 int echo(int argc, char** argv)
 {
@@ -85,15 +86,49 @@ int utils(int argc, char** argv)
   return 0;
 }
 
+int pstr(void* self)
+{
+  printf("%s\n", (char*)self);
+  return 0;
+}
+
 int hash(int argc, char** argv)
 {
+  int N, L;
+  if (argc < 3 || sscanf(argv[1], "%d", &N)+sscanf(argv[2], "%d", &L) != 2)
+    return -1;
+
+  char** strs = calloc(N, sizeof(char*));
+  for (int i = 0; i < N; i++)
+    strs[i] = dlib_rand_str(L, 'a', 'z'+1);
+
+  dlib_hash_t* h = dlib_hnew(dlib_str_hash, dlib_int_comp);
+  if (h == NULL)
+    return -1;
+
+  for (int i = 0; i < N; i++)
+    if (dlib_hsearch(h, strs[i]) == NULL)
+      puts("fuck");
+
+  for (int i = 0; i < N/2; i++)
+    dlib_hremove(h, strs[i]);
+
+  for (int i = 0; i < N; i++)
+    dlib_hfind(h, strs[i]);
+
+  printf("size=%d\n", h->size);
+
+  dlib_map(strs, strs+N, dlib_free);
+  free(strs);
+
+  dlib_hfree(h);
   return 0;
 }
 
 int main(int argc, char** argv)
 {
   const dlib_cmd_t cmds[] = {
-    DLIB_CMD_DEFINE(hash, ""),
+    DLIB_CMD_DEFINE(hash, "<nmemb> <len>"),
     DLIB_CMD_DEFINE(utils, ""),
     DLIB_CMD_DEFINE(array, ""),
     DLIB_CMD_DEFINE(loadfile, "<file>"),
