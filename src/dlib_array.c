@@ -19,6 +19,7 @@ int dlib_afree(void* self)
 {
   free(((dlib_array_t*)self)->data);
   free(self);
+  return 0;
 }
 
 int dlib_apush(dlib_array_t* self, void* data)
