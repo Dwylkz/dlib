@@ -80,7 +80,7 @@ err_2:
 err_1:
   fclose(file);
 err_0:
-  return foo;
+  return NULL;
 }
 
 uint32_t dlib_rand_num(const uint32_t lower, const uint32_t upper)
