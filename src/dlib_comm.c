@@ -27,7 +27,7 @@ int dlib_subcmd(int argc, char** argv, const dlib_cmd_t* cmds)
     goto err_0;
 
   for (int i = 0; cmds[i].name; i++)
-    if (strncmp(argv[1], cmds[i].name, strlen(cmds[i].name)) == 0)
+    if (strncmp(argv[1], cmds[i].name, strnlen(argv[1], 32)) == 0)
       return cmds[i].cmd(argc-1, argv+1);
 
   goto err_0;

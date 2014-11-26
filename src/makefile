@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2 -Wall -Werror
+CFLAGS=-O2 -Wall -Werror -g
 LDFLAGS=-lpthread -lm
 
 lib = libdlib.a
@@ -27,4 +27,4 @@ test: test.c $(lib)
 .PHONY: run
 run:
 	./test array
-	./test hash 1000000 10
+	./test hash 1 10

@@ -110,13 +110,13 @@ int hash(int argc, char** argv)
     if (dlib_hsearch(h, strs[i]) == NULL)
       puts("fuck");
 
-  for (int i = 0; i < N/2; i++)
+  for (int i = 0; i < N; i++)
     dlib_hremove(h, strs[i]);
 
   for (int i = 0; i < N; i++)
     dlib_hfind(h, strs[i]);
 
-  printf("size=%d\n", h->size);
+  // printf("size=%d\n", h->size);
 
   dlib_map(strs, strs+N, dlib_free);
   free(strs);
