@@ -26,5 +26,5 @@ test: test.c $(lib)
 
 .PHONY: run
 run:
-	./test array
-	./test hash 1 10
+	@#./test array
+	@#./test hash 1000000 10

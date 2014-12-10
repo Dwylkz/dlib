@@ -102,7 +102,7 @@ static int nfree(dlib_hash_t* self, void* old)
 
 static node_t** hash(dlib_hash_t* self, void* data, int do_insert)
 {
-  if (self->size == 0 && resize(self) != 0) {
+  if (self->volume == 0 && resize(self) != 0) {
     DLIB_ERR("resize failed");
     goto err_0;
   }

@@ -101,6 +101,7 @@ int hash(int argc, char** argv)
   char** strs = calloc(N, sizeof(char*));
   for (int i = 0; i < N; i++)
     strs[i] = dlib_rand_str(L, 'a', 'z'+1);
+  puts("gen done");
 
   dlib_hash_t* h = dlib_hnew(dlib_str_hash, dlib_int_comp);
   if (h == NULL)
@@ -109,12 +110,15 @@ int hash(int argc, char** argv)
   for (int i = 0; i < N; i++)
     if (dlib_hsearch(h, strs[i]) == NULL)
       puts("fuck");
+  puts("insert done");
 
   for (int i = 0; i < N; i++)
     dlib_hremove(h, strs[i]);
+  puts("remove done");
 
   for (int i = 0; i < N; i++)
     dlib_hfind(h, strs[i]);
+  puts("find done");
 
   // printf("size=%d\n", h->size);
 
