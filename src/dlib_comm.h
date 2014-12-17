@@ -7,7 +7,7 @@
 
 #define DLIB_MSG(file, prefix, fmt,...) \
     do {\
-      fprintf(file, "%s:%s:%d:%s: ", __FILE__, __func__, __LINE__, prefix);\
+      fprintf(file, "%s:%d:%s: ", __FILE__, __LINE__, prefix);\
       fprintf(file, fmt,##__VA_ARGS__);\
       fprintf(file, "\n");\
     } while(0);
