@@ -1,5 +1,3 @@
-#include "dlib_comm.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -7,6 +5,9 @@
 #include <errno.h>
 #include <time.h>
 #include <pthread.h>
+#include <unistd.h>
+
+#include "dlib_comm.h"
 
 const char* dlib_syserr()
 {
@@ -39,6 +40,28 @@ err_0:
     dlib_errmsg("<%s> = \"%s\" %s\n", cmds[i].name, cmds[i].name, cmds[i].usage);
   }
   return -1;
+}
+
+int dlib_subcmd_mutiplex(int argc, char** argv, dlib_cmd_i* cmd)
+{
+  if (argc < 2)
+    return -2;
+
+  uint32_t times;
+  if (sscanf(argv[1], "%u", &times) != 1)
+    return -2;
+
+  while (times--) {
+    int pid = fork();
+    if (pid == -1) {
+      DLIB_ERR("fork failed: (%s)", dlib_syserr());
+      return -1;
+    }
+    if (pid == 0) {
+      exit(cmd(argc-1, argv+1));
+    }
+  }
+  return 0;
 }
 
 char* dlib_loadfile(const char* filename)

@@ -38,10 +38,11 @@ void dlib_errmsg(const char* fmt, ...);
  *   name is command's name.
  *   usage is command's usage.
  */
+typedef int dlib_cmd_i(int, char**);
 typedef struct dlib_cmd_t {
   const char* name;
   const char* usage;
-  int (*cmd)(int, char**);
+  dlib_cmd_i* cmd;
 } dlib_cmd_t;
 #define DLIB_CMD_DEFINE(name, usage) {#name, usage, name}
 #define DLIB_CMD_NULL {NULL, NULL, NULL}
@@ -85,6 +86,7 @@ typedef struct dlib_cmd_t {
  *   it depends on which command you ran.
  */
 int dlib_subcmd(int argc, char** argv, const dlib_cmd_t* cmds);
+int dlib_subcmd_mutiplex(int argc, char** argv, dlib_cmd_i* cmd);
 
 /**
  * @brief
