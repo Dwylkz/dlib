@@ -246,4 +246,8 @@ void dlib_opop(dlib_owner_t* self, void* data, int do_del);
  */
 void dlib_oclear(dlib_owner_t* self);
 
+int dlib_so_read(int fd, void* buf, size_t size);
+int dlib_so_readline(int fd, char* buf, size_t size);
+int dlib_so_write(int fd, void* buf, size_t size);
+
 #endif // DLIB_COMM_H_

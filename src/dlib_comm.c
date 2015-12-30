@@ -244,3 +244,67 @@ int dlib_free(void* self)
   free(self);
   return 0;
 }
+
+int dlib_so_read(int fd, void* buf, size_t size)
+{
+  int ret = 0;
+
+  while (1) {
+    ret = read(fd, buf, size);
+    if (ret == -1) {
+      if (errno == EINTR || errno == EAGAIN) {
+        continue;
+      }
+      DLIB_ERR("%d: read: msg=(%s)", errno, dlib_syserr());
+      return errno;
+    }
+
+    break;
+  }
+  return ret;
+}
+int dlib_so_readline(int fd, char* buf, size_t size)
+{
+  int ret = 0;
+
+  int i = 0;
+  while (i < size) {
+    ret = dlib_so_read(fd, buf+i, size);
+    if (ret < 0) {
+      DLIB_ERR("%d: so_read: fd=%d", ret, fd);
+      return -1;
+    }
+
+    if (ret == 0)
+      break;
+    i += ret;
+    if (buf[i-1] == '\n') {
+      i--;
+      break;
+    }
+  }
+  buf[i] = '\0';
+  return ret;
+}
+int dlib_so_write(int fd, void* buf, size_t size)
+{
+  int ret = 0;
+
+  int i = 0;
+  while (i < size) {
+    ret = write(fd, buf, size-i);
+    if (ret == -1) {
+      if (errno == EINTR || errno == EAGAIN) {
+        continue;
+      }
+      DLIB_ERR("%d: wrtie: msg=(%s)", errno, dlib_syserr());
+      return errno;
+    }
+    else if (ret == 0) {
+      break;
+    }
+    i += ret;
+  }
+
+  return i;
+}
