@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2 -Wall -Werror -g
+CFLAGS=-O2 -Wall -Werror -g -std=c99 -D_GNU_SOURCE
 LDFLAGS=-lpthread -lm
 
 lib = libdlib.a

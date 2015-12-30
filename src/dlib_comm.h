@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define DLIB_SIZE_NAME 64
+
 #define DLIB_MSG(file, prefix, fmt,...) \
     do {\
       fprintf(file, "%s:%d:%s: ", __FILE__, __LINE__, prefix);\
