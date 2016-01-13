@@ -4,16 +4,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #define DLIB_SIZE_NAME 64
+#define DLIB_DEBUG 1
 
 #define DLIB_MSG(file, prefix, fmt,...) \
     do {\
-      fprintf(file, "%s:%d:%s: ", __FILE__, __LINE__, prefix);\
+      fprintf(file, "%s:%d:%d:%s: ", __FILE__, __LINE__, getpid(), prefix);\
       fprintf(file, fmt,##__VA_ARGS__);\
       fprintf(file, "\n");\
     } while(0);
 #define DLIB_ERR(fmt,...) DLIB_MSG(stderr, "ERR", fmt,##__VA_ARGS__)
+#ifdef DLIB_DEBUG
+#define DLIB_DBG(fmt,...) DLIB_MSG(stderr, "DBG", fmt,##__VA_ARGS__)
+#else
+#define DLIB_DBG(fmt,...) ;
+#endif
 #define DLIB_INFO(fmt,...) DLIB_MSG(stdout, "INFO", fmt,##__VA_ARGS__)
 
 /**
@@ -173,6 +182,10 @@ int dlib_map(void* first, void* last, dlib_map_i* mapper);
  *   always return 0
  */
 int dlib_free(void* self);
+/* wrapper of close */
+int dlib_close(void* self);
+/* wrapper of fclose */
+int dlib_fclose(void* self);
 
 /**
  * @brief
@@ -202,54 +215,8 @@ typedef uint32_t (dlib_hash_i)(void*);
 uint32_t dlib_int_hash(void* self);
 uint32_t dlib_str_hash(void* self);
 
-#ifndef DLIB_OWNER_SIZE
-# define DLIB_OWNER_SIZE 8
-#endif // DLIB_OWNER_SIZE
-/**
- * @brief 
- *   simple memory manager, usually use in function
- */
-typedef struct dlib_owner_t {
-  struct {
-    void* data;
-    dlib_map_i* del;
-  } data[DLIB_OWNER_SIZE];
-  int size;
-} dlib_owner_t;
-#define DLIB_OWNER_NULL {{{0, 0}}, 0}
-/**
- * @brief 
- *   push a data to owner
- *
- * @param self
- * @param data
- * @param del
- *   point to the data destroyer
- *
- * @return 
- *   0 on succ, -1 on the size == DLIB_OWNER_SIZE
- */
-int dlib_opush(dlib_owner_t* self, void* data, dlib_map_i* del);
-/**
- * @brief
- *   free specific data from owner
- *
- * @param self
- * @param data
- * @param do_del
- *   1  delete, others not
- */
-void dlib_opop(dlib_owner_t* self, void* data, int do_del);
-/**
- * @brief
- *   free all data in owner, usually use for err handle
- *
- * @param self
- */
-void dlib_oclear(dlib_owner_t* self);
-
-int dlib_so_read(int fd, void* buf, size_t size);
-int dlib_so_readline(int fd, char* buf, size_t size);
-int dlib_so_write(int fd, void* buf, size_t size);
+ssize_t dlib_so_read(int fd, void* buf, size_t size);
+ssize_t dlib_so_readline(int fd, char* buf, size_t size);
+ssize_t dlib_so_write(int fd, void* buf, size_t size);
 
 #endif // DLIB_COMM_H_

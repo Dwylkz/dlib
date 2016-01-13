@@ -31,7 +31,7 @@ int dlib_hfree(void* self)
 
 static int resize(dlib_hash_t* self)
 {
-  dlib_owner_t owner = DLIB_OWNER_NULL;
+  DLIB_OWNER_NEW(owner);
 
   int volume = (self->volume+1)*2-1;
   node_t* data = calloc(volume, sizeof(node_t));

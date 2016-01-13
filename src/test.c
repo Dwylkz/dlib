@@ -6,6 +6,7 @@
 #include <dlib_comm.h>
 #include <dlib_array.h>
 #include <dlib_hash.h>
+#include <dlib_owner.h>
 
 int echo(int argc, char** argv)
 {
@@ -16,7 +17,7 @@ int echo(int argc, char** argv)
 
 int owner(int argc, char** argv)
 {
-  dlib_owner_t owner = DLIB_OWNER_NULL;
+  DLIB_OWNER_NEW(owner);
   char* s = "hehe";
 
   dlib_opush(&owner, strdup(s), dlib_free);
@@ -24,50 +25,43 @@ int owner(int argc, char** argv)
   dlib_opush(&owner, strdup(s), dlib_free);
   dlib_opush(&owner, strdup(s), dlib_free);
 
-  goto err_0;
-
   dlib_opush(&owner, strdup(s), dlib_free);
   dlib_opush(&owner, strdup(s), dlib_free);
 
   dlib_opush(&owner, strdup(s), dlib_free);
 
-  char* b = strdup(s);
-  dlib_opush(&owner, b, dlib_free);
-  dlib_opop(&owner, b, 1);
-  dlib_opop(&owner, (void*)1, 1);
+  char* b = dlib_opush(&owner, strdup(s), dlib_free);
+  dlib_ofree(&owner, b);
 
   dlib_opush(&owner, strdup(s), dlib_free);
 
   printf("%s\n", s);
-
-  dlib_oclear(&owner);
-  return 0;
-err_0:
-  dlib_oclear(&owner);
-  return 0;
+  return dlib_oreturn(0, &owner);
 }
 
 int loadfile(int argc, char** argv)
 {
+  DLIB_OWNER_NEW(owner);
+
   if (argc != 2)
     return -1;
 
-  dlib_owner_t owner = DLIB_OWNER_NULL;
+  char* foo = dlib_opush(&owner,
+                         dlib_loadfile(argv[1]),
+                         dlib_free);
 
-  char* foo = dlib_loadfile(argv[1]);
-  dlib_opush(&owner, foo, dlib_free);
-
-  dlib_oclear(&owner);
-  return 0;
+  puts(foo);
+  return dlib_oreturn(0, &owner);
 }
 
 int array(int argc, char** argv)
 {
-  dlib_owner_t owner = DLIB_OWNER_NULL;
+  DLIB_OWNER_NEW(owner);
 
   char* bud = "hehe";
-  dlib_array_t* a = dlib_anew();
-  dlib_opush(&owner, a, dlib_afree);
+  dlib_array_t* a = dlib_opush(&owner,
+                               dlib_anew(),
+                               dlib_afree);
 
   for (int i = 0; i < 1000000; i++)
     dlib_apush(a, strdup(bud));

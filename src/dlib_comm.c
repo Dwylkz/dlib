@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "dlib_comm.h"
+#include "dlib_owner.h"
 
 const char* dlib_syserr()
 {
@@ -66,44 +67,43 @@ int dlib_subcmd_mutiplex(int argc, char** argv, dlib_cmd_i* cmd)
 
 char* dlib_loadfile(const char* filename)
 {
-  FILE* file = fopen(filename, "r");
+  DLIB_OWNER_NEW(owner);
+  FILE* file = dlib_opush(&owner,
+                          fopen(filename, "r"),
+                          dlib_fclose);
   if (file == NULL) {
     DLIB_ERR("%s", dlib_syserr());
-    goto err_0;
+    return dlib_opreturn(NULL, &owner);
   }
 
   if (fseek(file, 0, SEEK_END) == -1) {
     DLIB_ERR("%s", dlib_syserr());
-    goto err_1;
+    return dlib_opreturn(NULL, &owner);
   }
 
   long size = ftell(file);
   if (size == -1) {
     DLIB_ERR("%s", dlib_syserr());
-    goto err_1;
+    return dlib_opreturn(NULL, &owner);
   }
 
   rewind(file);
 
-  char* foo = calloc(size+1, 1);
+  char* foo = dlib_opush(&owner,
+                         calloc(size+1, 1),
+                         dlib_free);
   if (foo == NULL) {
     DLIB_ERR("%s", dlib_syserr());
-    goto err_1;
+    return dlib_opreturn(NULL, &owner);
   }
   
   if (fread(foo, 1, size, file) != size) {
     DLIB_ERR("%s", dlib_syserr());
-    goto err_2;
+    return dlib_opreturn(NULL, &owner);
   }
 
-  fclose(file);
-  return foo;
-err_2:
-  free(foo);
-err_1:
-  fclose(file);
-err_0:
-  return NULL;
+  return dlib_opreturn(dlib_orelease(&owner, foo),
+                       &owner);;
 }
 
 uint32_t dlib_rand_num(const uint32_t lower, const uint32_t upper)
@@ -191,44 +191,6 @@ uint32_t dlib_str_hash(void* self)
   return seed;
 }
 
-int dlib_opush(dlib_owner_t* self, void* data, dlib_map_i* del)
-{
-  if (self->size == DLIB_OWNER_SIZE) {
-    DLIB_ERR("the owner is going to overflow");
-    return -1;
-  }
-
-  self->data[self->size].data = data;
-  self->data[self->size].del = del;
-  self->size++;
-  return 0;
-}
-
-void dlib_opop(dlib_owner_t* self, void* data, int do_del)
-{
-  for (int i = 0; i < DLIB_OWNER_SIZE; i++) {
-    if (self->data[i].data == data) {
-      if (do_del == 1)
-        self->data[i].del(data);
-      self->data[i] = self->data[self->size-1];
-      self->size--;
-      return ;
-    }
-  }
-
-  DLIB_INFO("data %p is not under control", data);
-}
-
-void dlib_oclear(dlib_owner_t* self)
-{
-  for (int i = 0; i < self->size; i++) {
-    self->data[i].del(self->data[i].data);
-    self->data[i].data = 0;
-    self->data[i].del = 0;
-  }
-  self->size = 0;
-}
-
 int dlib_map(void* first, void* last, dlib_map_i* mapper)
 {
   int ret = 0;
@@ -245,11 +207,23 @@ int dlib_free(void* self)
   return 0;
 }
 
-int dlib_so_read(int fd, void* buf, size_t size)
+int dlib_close(void* self)
+{
+  return close(*(int*)self);
+}
+
+int dlib_fclose(void* self)
+{
+  return fclose((FILE*)self);
+}
+
+ssize_t dlib_so_read(int fd, void* buf, size_t size)
 {
   int ret = 0;
+  int cnt = 0;
 
   while (1) {
+    cnt++;
     ret = read(fd, buf, size);
     if (ret == -1) {
       if (errno == EINTR || errno == EAGAIN) {
@@ -261,14 +235,17 @@ int dlib_so_read(int fd, void* buf, size_t size)
 
     break;
   }
+  DLIB_DBG("read time: cnt=%d", cnt);
   return ret;
 }
-int dlib_so_readline(int fd, char* buf, size_t size)
+ssize_t dlib_so_readline(int fd, char* buf, size_t size)
 {
   int ret = 0;
+  int cnt = 0;
 
   int i = 0;
   while (i < size) {
+    cnt++;
     ret = dlib_so_read(fd, buf+i, size);
     if (ret < 0) {
       DLIB_ERR("%d: so_read: fd=%d", ret, fd);
@@ -284,14 +261,17 @@ int dlib_so_readline(int fd, char* buf, size_t size)
     }
   }
   buf[i] = '\0';
+  DLIB_DBG("readline time: cnt=%d", cnt);
   return ret;
 }
-int dlib_so_write(int fd, void* buf, size_t size)
+ssize_t dlib_so_write(int fd, void* buf, size_t size)
 {
   int ret = 0;
+  int cnt = 0;
 
   int i = 0;
   while (i < size) {
+    cnt++;
     ret = write(fd, buf, size-i);
     if (ret == -1) {
       if (errno == EINTR || errno == EAGAIN) {
@@ -306,5 +286,6 @@ int dlib_so_write(int fd, void* buf, size_t size)
     i += ret;
   }
 
+  DLIB_DBG("write time: cnt=%d", cnt);
   return i;
 }
